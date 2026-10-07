@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blocky Speller - UK English</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mc-bg: #8B5A2B;
+            --mc-sky: #78a7ff;
+            --mc-stone: #8b8b8b;
+            --mc-stone-light: #ffffff;
+            --mc-stone-dark: #555555;
+            --mc-text-shadow: 2px 2px 0px #383838;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: var(--mc-sky);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .mc-btn {
+            background-color: var(--mc-stone);
+            border: 4px solid;
+            border-color: var(--mc-stone-light) var(--mc-stone-dark) var(--mc-stone-dark) var(--mc-stone-light);
+            color: white;
+            text-shadow: var(--mc-text-shadow);
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .mc-btn:active {
+            border-color: var(--mc-stone-dark) var(--mc-stone-light) var(--mc-stone-light) var(--mc-stone-dark);
+            transform: scale(0.95);
+        }
+
+        .mc-btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .mc-panel {
+            background-color: #c6c6c6;
+            border: 4px solid;
+            border-color: var(--mc-stone-light) var(--mc-stone-dark) var(--mc-stone-dark) var(--mc-stone-light);
+            color: #333;
+        }
+
+        .mc-text {
+            color: white;
+            text-shadow: var(--mc-text-shadow);
+            line-height: 1.5;
+        }
+
+        .mc-title {
+            color: #FFFF55;
+            text-shadow: 4px 4px 0px #3f3f15;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .key {
+            flex: 1;
+            max-width: 40px;
+            height: 45px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .key-wide {
+            flex: 1.5;
+            max-width: 60px;
+            font-size: 10px;
+        }
+
+        .dirt-bg {
+            background-color: #704829;
+            background-image: 
+                linear-gradient(45deg, #5c3a21 25%, transparent 25%, transparent 75%, #5c3a21 75%, #5c3a21), 
+                linear-gradient(45deg, #5c3a21 25%, transparent 25%, transparent 75%, #5c3a21 75%, #5c3a21);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            border-top: 6px solid #528b34; /* Grass top */
+        }
+
+        .xp-container {
+            width: 100%;
+            height: 10px;
+            background-color: #000;
+            border: 2px solid #555;
+            margin-top: 10px;
+            position: relative;
+        }
+        
+        .xp-bar {
+            height: 100%;
+            background-color: #37c837;
+            width: 0%;
+            transition: width 0.3s ease-out;
+        }
+
+        .letter-slot {
+            display: inline-block;
+            width: 25px;
+            height: 35px;
+            border-bottom: 4px solid white;
+            margin: 0 4px;
+            font-size: 24px;
+            text-align: center;
+            color: white;
+            text-shadow: var(--mc-text-shadow);
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+        .shake-animation {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .pop-animation {
+            animation: pop 0.3s ease-in-out;
+        }
+
+        .h-safe {
+            height: 100vh;
+            height: 100dvh;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-safe">
+
+    <div id="start-screen" class="flex flex-col items-center justify-center h-full w-full absolute z-20 bg-[var(--mc-sky)] p-4">
+        <h1 class="mc-title mb-8">Blocky<br>Speller</h1>
+        <div class="mc-panel p-4 text-center max-w-sm mb-8">
+            <p class="text-xs leading-5 mb-4">Learn to spell 50 UK English words!</p>
+            <p class="text-[10px] text-gray-600 leading-4">Memorise the word, listen to the audio, and mine the correct letters.</p>
+        </div>
+        <button onclick="startGame()" class="mc-btn px-8 py-4 text-xl">PLAY</button>
+    </div>
+
+    <div id="game-screen" class="hidden flex-col h-full w-full absolute z-10">
+        
+        <div class="p-4 flex flex-col items-center justify-between w-full bg-[rgba(0,0,0,0.3)]">
+            <div class="flex justify-between w-full max-w-md">
+                <div id="hearts-container" class="flex gap-1 text-xl text-red-500">
+                    <!-- Hearts will be injected here -->
+                </div>
+                <div class="mc-text text-sm">Level <span id="level-display">1</span></div>
+            </div>
+            
+            <div class="xp-container max-w-md">
+                <div id="xp-bar" class="xp-bar"></div>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center p-4" id="play-area">
+            
+            <button id="repeat-audio-btn" onclick="speakCurrentWord()" class="mc-btn p-3 mb-6 hidden rounded-full">
+                🔊 Listen
+            </button>
+
+            <div id="status-text" class="mc-text text-yellow-300 text-sm mb-4 h-4 text-center">
+                Get Ready!
+            </div>
+
+            <div id="word-display" class="flex flex-wrap justify-center mb-8">
+                <!-- Letter slots injected here -->
+            </div>
+
+            <div id="feedback-message" class="mc-text text-xl hidden absolute top-1/2 transform -translate-y-1/2">
+                Correct!
+            </div>
+        </div>
+
+        <div class="dirt-bg p-2 pb-6 w-full shadow-[inset_0_4px_10px_rgba(0,0,0,0.5)]">
+            <div class="max-w-md mx-auto">
+                <div class="keyboard-row">
+                    <button class="mc-btn key" onclick="handleKey('Q')">Q</button>
+                    <button class="mc-btn key" onclick="handleKey('W')">W</button>
+                    <button class="mc-btn key" onclick="handleKey('E')">E</button>
+                    <button class="mc-btn key" onclick="handleKey('R')">R</button>
+                    <button class="mc-btn key" onclick="handleKey('T')">T</button>
+                    <button class="mc-btn key" onclick="handleKey('Y')">Y</button>
+                    <button class="mc-btn key" onclick="handleKey('U')">U</button>
+                    <button class="mc-btn key" onclick="handleKey('I')">I</button>
+                    <button class="mc-btn key" onclick="handleKey('O')">O</button>
+                    <button class="mc-btn key" onclick="handleKey('P')">P</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="mc-btn key" onclick="handleKey('A')">A</button>
+                    <button class="mc-btn key" onclick="handleKey('S')">S</button>
+                    <button class="mc-btn key" onclick="handleKey('D')">D</button>
+                    <button class="mc-btn key" onclick="handleKey('F')">F</button>
+                    <button class="mc-btn key" onclick="handleKey('G')">G</button>
+                    <button class="mc-btn key" onclick="handleKey('H')">H</button>
+                    <button class="mc-btn key" onclick="handleKey('J')">J</button>
+                    <button class="mc-btn key" onclick="handleKey('K')">K</button>
+                    <button class="mc-btn key" onclick="handleKey('L')">L</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="mc-btn key" onclick="handleKey('Z')">Z</button>
+                    <button class="mc-btn key" onclick="handleKey('X')">X</button>
+                    <button class="mc-btn key" onclick="handleKey('C')">C</button>
+                    <button class="mc-btn key" onclick="handleKey('V')">V</button>
+                    <button class="mc-btn key" onclick="handleKey('B')">B</button>
+                    <button class="mc-btn key" onclick="handleKey('N')">N</button>
+                    <button class="mc-btn key" onclick="handleKey('M')">M</button>
+                    <button class="mc-btn key key-wide" style="background-color:#d04848;" onclick="handleDelete()">DEL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="hidden flex-col items-center justify-center h-full w-full absolute z-30 bg-[rgba(0,0,0,0.9)] p-4 text-center">
+        <h1 class="mc-title text-red-500 mb-4">GAME OVER</h1>
+        <div class="mc-panel p-6 mb-8 max-w-sm w-full">
+            <p class="text-sm mb-4">Words Spelled:</p>
+            <p id="final-score" class="text-2xl text-green-600 mb-2">0</p>
+        </div>
+        <button onclick="startGame()" class="mc-btn px-8 py-4 text-xl">TRY AGAIN</button>
+    </div>
+
+    <script>
+        const wordList = [
+            "because", "door", "great", "only", "with", "beautiful", "every", 
+            "half", "parents", "sure", "both", "everybody", "hold", "pass", 
+            "told", "break", "even", "hour", "path", "water", "busy", "eve", 
+            "improve", "people", "whole", "children", "father", "kind", "poor", 
+            "who", "class", "find", "many", "pretty", "wild", "clothes", "floor", 
+            "mind", "prove", "would", "cold", "gold", "move", "should", "which", 
+            "could", "grass", "old", "steak", "behind"
+        ];
+
+        let currentWord = "";
+        let userInput = "";
+        let score = 0;
+        let lives = 3;
+        let gameState = "start";
+        let wordsRemaining = [];
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const wordDisplay = document.getElementById('word-display');
+        const heartsContainer = document.getElementById('hearts-container');
+        const xpBar = document.getElementById('xp-bar');
+        const levelDisplay = document.getElementById('level-display');
+        const statusText = document.getElementById('status-text');
+        const repeatAudioBtn = document.getElementById('repeat-audio-btn');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const playArea = document.getElementById('play-area');
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(400, now);
+                oscillator.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+            } else if (type === 'xp') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, now);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+            } else if (type === 'hurt') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, now);
+                oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+            }
+        }
+
+        function speakCurrentWord() {
+            if (!currentWord) return;
+            
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(currentWord);
+            
+            const voices = window.speechSynthesis.getVoices();
+            const ukVoice = voices.find(voice => voice.lang === 'en-GB' || voice.lang === 'en_GB');
+            
+            if (ukVoice) {
+                utterance.voice = ukVoice;
+            }
+            
+            utterance.rate = 0.85;
+            utterance.pitch = 1.1;
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function startGame() {
+            playSound('click');
+            score = 0;
+            lives = 3;
+            wordsRemaining = [...wordList];
+            
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            gameScreen.classList.add('flex');
+            
+            updateHUD();
+            nextWord();
+        }
+
+        function nextWord() {
+            if (wordsRemaining.length === 0) {
+                wordsRemaining = [...wordList];
+            }
+            
+            const randomIndex = Math.floor(Math.random() * wordsRemaining.length);
+            currentWord = wordsRemaining[randomIndex].toUpperCase();
+            wordsRemaining.splice(randomIndex, 1);
+            
+            userInput = "";
+            gameState = "memorize";
+            
+            repeatAudioBtn.classList.add('hidden');
+            statusText.innerText = "Memorise the word!";
+            statusText.classList.replace('text-yellow-300', 'text-white');
+            
+            renderWordDisplay(true);
+            speakCurrentWord();
+
+            setTimeout(() => {
+                if(lives > 0) {
+                    gameState = "spell";
+                    statusText.innerText = "Now spell it!";
+                    statusText.classList.replace('text-white', 'text-yellow-300');
+                    repeatAudioBtn.classList.remove('hidden');
+                    renderWordDisplay(false);
+                }
+            }, 2500);
+        }
+
+        function updateHUD() {
+            heartsContainer.innerHTML = '';
+            for(let i=0; i<3; i++) {
+                if(i < lives) {
+                    heartsContainer.innerHTML += '<span>❤️</span>';
+                } else {
+                    heartsContainer.innerHTML += '<span style="filter: grayscale(100%); opacity: 0.3;">❤️</span>';
+                }
+            }
+
+            const level = Math.floor(score / 5) + 1;
+            levelDisplay.innerText = level;
+            const xpPercentage = ((score % 5) / 5) * 100;
+            xpBar.style.width = xpPercentage + '%';
+        }
+
+        function renderWordDisplay(showFullWord = false) {
+            wordDisplay.innerHTML = '';
+            
+            for (let i = 0; i < currentWord.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'letter-slot';
+                
+                if (showFullWord) {
+                    slot.innerText = currentWord[i];
+                    slot.style.borderBottomColor = 'transparent'; 
+                } else {
+                    slot.style.borderBottomColor = 'white';
+                    if (i < userInput.length) {
+                        slot.innerText = userInput[i];
+                        if(i === userInput.length - 1) {
+                            slot.classList.add('pop-animation');
+                            setTimeout(() => slot.classList.remove('pop-animation'), 300);
+                        }
+                    } else {
+                        slot.innerText = '';
+                    }
+                }
+                
+                wordDisplay.appendChild(slot);
+            }
+        }
+
+        function handleKey(char) {
+            if (gameState !== "spell") return;
+            playSound('click');
+            
+            if (userInput.length < currentWord.length) {
+                userInput += char;
+                renderWordDisplay(false);
+                
+                if (userInput.length === currentWord.length) {
+                    checkSpelling();
+                }
+            }
+        }
+
+        function handleDelete() {
+            if (gameState !== "spell") return;
+            playSound('click');
+            
+            if (userInput.length > 0) {
+                userInput = userInput.slice(0, -1);
+                renderWordDisplay(false);
+            }
+        }
+
+        function checkSpelling() {
+            gameState = "checking";
+            
+            if (userInput === currentWord) {
+                playSound('xp');
+                score++;
+                updateHUD();
+                
+                showFeedback("Correct!", "text-green-400");
+                
+                setTimeout(() => {
+                    nextWord();
+                }, 1500);
+
+            } else {
+                playSound('hurt');
+                lives--;
+                updateHUD();
+                
+                playArea.classList.add('shake-animation');
+                setTimeout(() => playArea.classList.remove('shake-animation'), 400);
+
+                showFeedback(`Wrong! It was ${currentWord}`, "text-red-500");
+
+                setTimeout(() => {
+                    if (lives <= 0) {
+                        endGame();
+                    } else {
+                        userInput = "";
+                        gameState = "spell";
+                        statusText.innerText = "Try again!";
+                        renderWordDisplay(false);
+                    }
+                }, 1500);
+            }
+        }
+
+        function showFeedback(text, colorClass) {
+            wordDisplay.classList.add('opacity-0');
+            repeatAudioBtn.classList.add('hidden');
+            
+            feedbackMessage.innerText = text;
+            feedbackMessage.className = `mc-text text-xl absolute top-1/2 transform -translate-y-1/2 ${colorClass} pop-animation text-center w-full px-4`;
+            feedbackMessage.classList.remove('hidden');
+
+            setTimeout(() => {
+                feedbackMessage.classList.add('hidden');
+                wordDisplay.classList.remove('opacity-0');
+            }, 1400);
+        }
+
+        function endGame() {
+            gameState = "gameover";
+            gameScreen.classList.add('hidden');
+            gameScreen.classList.remove('flex');
+            
+            document.getElementById('final-score').innerText = score;
+            
+            gameOverScreen.classList.remove('hidden');
+            gameOverScreen.classList.add('flex');
+        }
+
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+
+        window.oncontextmenu = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        };
+    </script>
+</body>
+</html>
