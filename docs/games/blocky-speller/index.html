@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Blocky Speller - UK English</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="back-link" href="../../index.html">← All games</a>
+
+  <div id="start-screen" class="screen visible" aria-live="polite">
+    <h1 class="mc-title">Blocky<br>Speller</h1>
+    <div class="mc-panel intro-panel">
+      <p id="intro-copy">Loading game data…</p>
+      <p id="intro-hint" class="hint">Memorise, listen, and spell.</p>
+    </div>
+    <button id="play-btn" class="mc-btn" disabled>PLAY</button>
+  </div>
+
+  <div id="game-screen" class="screen" aria-live="polite">
+    <header class="hud">
+      <div class="hud-row">
+        <div id="hearts-container" class="hearts"></div>
+        <div class="mc-text">Level <span id="level-display">1</span></div>
+      </div>
+      <div class="xp-container"><div id="xp-bar" class="xp-bar"></div></div>
+    </header>
+
+    <main id="play-area" class="play-area">
+      <button id="repeat-audio-btn" class="mc-btn repeat-btn hidden" type="button" aria-label="Repeat word audio">🔊 Listen</button>
+      <p id="status-text" class="mc-text status">Get Ready!</p>
+      <div id="word-display" class="word-display" aria-label="Word slots"></div>
+      <p id="feedback-message" class="mc-text feedback" aria-live="assertive"></p>
+    </main>
+
+    <section class="keyboard-shell" aria-label="Game keyboard">
+      <div id="keyboard" class="keyboard"></div>
+    </section>
+  </div>
+
+  <div id="game-over-screen" class="screen game-over" aria-live="polite">
+    <h2 class="mc-title game-over-title">GAME OVER</h2>
+    <div class="mc-panel game-over-panel">
+      <p>Words Spelled:</p>
+      <p id="final-score" class="score">0</p>
+    </div>
+    <button id="retry-btn" class="mc-btn" type="button">TRY AGAIN</button>
+  </div>
+
+  <script src="./game.js" defer></script>
+</body>
+</html>
