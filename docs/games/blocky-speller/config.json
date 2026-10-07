@@ -1,0 +1,34 @@
+{
+  "title": "Blocky Speller",
+  "description": "Learn to spell with 50 UK English words.",
+  "wordpack": "./wordpacks/en-GB-core.json",
+  "theme": {
+    "colors": {
+      "mcSky": "#78a7ff",
+      "mcStone": "#8b8b8b",
+      "mcStoneLight": "#ffffff",
+      "mcStoneDark": "#555555",
+      "mcTextShadow": "2px 2px 0 #383838",
+      "mcTitle": "#ffff55",
+      "mcTitleShadow": "#3f3f15",
+      "statusPrimary": "#fde047",
+      "statusMemorize": "#ffffff",
+      "feedbackCorrect": "#4ade80",
+      "feedbackWrong": "#f87171"
+    },
+    "fontScale": 1
+  },
+  "gameplay": {
+    "startingLives": 3,
+    "memorizeDurationMs": 2500,
+    "feedbackDurationMs": 1500,
+    "wordsPerLevel": 5
+  },
+  "speech": {
+    "lang": "en-GB",
+    "preferRegion": "en-GB",
+    "rate": 0.85,
+    "pitch": 1.1,
+    "volume": 1
+  }
+}
